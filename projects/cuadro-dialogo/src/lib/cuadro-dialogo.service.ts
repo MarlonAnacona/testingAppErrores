@@ -91,6 +91,7 @@ Maneja un error y muestra un diálogo modal al usuario para reportar el error.
         trazabilidad = createError().handleError(err)[0];
         mensajeError = createError().handleError(err)[1];
       }
+      console.log(trazabilidad)
       // Abre un diálogo modal para reportar el error al usuario
       this.ngZone.run(() => {
         this.dialog.open(AlertDialog, {
@@ -101,12 +102,7 @@ Maneja un error y muestra un diálogo modal al usuario para reportar el error.
             ip: this.ip,
             trazabilidad: trazabilidad,
             mensajeobject: mensajeError,
-            tiempo:
-              time.getHours() +
-              ':' +
-              time.getMinutes() +
-              ':' +
-              time.getSeconds(),
+            tiempo:time,  
             navegador: navegator,
             eventosUsuario: eventosUsuario,
             status: status,
