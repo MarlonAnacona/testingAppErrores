@@ -98,7 +98,6 @@ Crea una nueva instancia de AlertDialog.
     trazabilidadCodigo = {
       tiempo: this.tiempo,
       trazaError: this.trazabilidad,
-      categoria: '',
     };
 
     if (this.status == 409) {
@@ -127,7 +126,6 @@ Crea una nueva instancia de AlertDialog.
     trazabilidadCodigo = {
       tiempo: this.tiempo,
       trazaError: this.trazabilidad,
-      categoria: '',
     };
 
     if (this.status == 409) {

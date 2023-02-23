@@ -29,6 +29,7 @@ export class ServicehttpAPIError {
       trazabilidadError: trazabilidadError,
       accionesUsuario: accionesUsuario,
     };
+    console.log(payload);
     return this.http.post(
       `${this.baseUrl}aplicacionFrontEndError/save`,
       payload
@@ -52,6 +53,8 @@ Stores traceability and user actions for a specific application error.
       trazabilidadError: trazabilidadError,
       accionesUsuario: accionesUsuario,
     };
+    console.log(payload);
+
     return this.http.post(
       `${this.baseUrl}saveTrazabilitiyandUserevents/${idaplicacionError}`,
       payload

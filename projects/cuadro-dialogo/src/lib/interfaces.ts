@@ -10,5 +10,4 @@ export interface aplicacion_error {
 export interface trazabilidad_codigo {
   tiempo?: Time;
   trazaError: string;
-  categoria: string;
 }

@@ -104,7 +104,8 @@ export function crearMensajeObjeto(error: Error) {
     method: lineasAt,
   };
 
-  return errorInfo;
+  const callstack = errorInfo.method;
+  return callstack;
 }
 
 /**
