@@ -25,9 +25,9 @@ export class ServicehttpAPIError {
     accionesUsuario: Array<object>
   ): Observable<any> {
     const payload = {
-      aplicacionError: aplicacionError,
-      trazabilidadError: trazabilidadError,
-      accionesUsuario: accionesUsuario,
+      aplicacionErrorDto: aplicacionError,
+      trazabilidadCodigoDto: trazabilidadError,
+      accionesUsuarioDto: accionesUsuario,
     };
     console.log(payload);
     return this.http.post(

@@ -86,9 +86,8 @@ Maneja un error y muestra un diálogo modal al usuario para reportar el error.
           mensajeError = createError().handleError(err)[1];
         }
       } else {
-        console.log('object error');
-
         trazabilidad = createError().handleError(err)[0];
+        trazabilidad = trazabilidad.stack;
         mensajeError = createError().handleError(err)[1];
       }
       // Abre un diálogo modal para reportar el error al usuario
@@ -101,12 +100,7 @@ Maneja un error y muestra un diálogo modal al usuario para reportar el error.
             ip: this.ip,
             trazabilidad: trazabilidad,
             mensajeobject: mensajeError,
-            tiempo:
-              time.getHours() +
-              ':' +
-              time.getMinutes() +
-              ':' +
-              time.getSeconds(),
+            tiempo: time,
             navegador: navegator,
             eventosUsuario: eventosUsuario,
             status: status,

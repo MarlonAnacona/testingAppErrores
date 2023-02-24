@@ -1,7 +1,6 @@
 import { UsuariosServicesService } from './../servicio.service';
 import { Component, NgZone, OnInit } from '@angular/core';
 import { throwError } from 'rxjs';
-import { MyLibComponent, createError } from 'my-lib';
 import { crearCuadroError, CuadroDialogoModule } from 'cuadroDialogo';
 import { MatDialog } from '@angular/material/dialog';
 import { saveError } from 'event-logs';
