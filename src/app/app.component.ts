@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { RouterEvents } from 'cuadroDialogo';
+import { RouterEvents, nameApp } from 'cuadroDialogo';
 
 @Component({
   selector: 'app-root',
@@ -10,6 +10,9 @@ import { RouterEvents } from 'cuadroDialogo';
 export class AppComponent implements OnInit {
   constructor(private router: Router, private routerEvents: RouterEvents) {}
 
-  ngOnInit() {}
+  ngOnInit() {
+    nameApp('Aplicación prueba');
+    //throw new Error('pruebita login');
+  }
   title = 'library';
 }

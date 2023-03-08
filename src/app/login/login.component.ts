@@ -10,6 +10,8 @@ import { saveError } from 'event-logs';
   styleUrls: ['./login.component.css'],
 })
 export class LoginComponent implements OnInit {
+  numero1: number = 0;
+  numero2: number = 0;
   constructor(
     private UsuariosServicesServicee: UsuariosServicesService,
     private matDialog: MatDialog,
@@ -32,7 +34,9 @@ export class LoginComponent implements OnInit {
       },
     });
   }
-
+  sumar(): number {
+    return 10 / 0;
+  }
   generarerrorObject() {
     this.trazabilidad('asdsa');
   }

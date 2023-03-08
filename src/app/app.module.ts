@@ -1,3 +1,4 @@
+import { FormsModule } from '@angular/forms';
 import { MatDialogModule } from '@angular/material/dialog';
 import {
   HttpClient,
@@ -18,6 +19,7 @@ import { MyInterceptor, RouterEvents } from 'cuadroDialogo';
 @NgModule({
   declarations: [AppComponent, LoginComponent],
   imports: [
+    FormsModule,
     BrowserModule,
     AppRoutingModule,
     ControlErroresModule,
