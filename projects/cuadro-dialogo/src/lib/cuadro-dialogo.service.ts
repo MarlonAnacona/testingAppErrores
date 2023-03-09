@@ -2,8 +2,10 @@ import { saveError } from 'event-logs';
 import { createError } from 'control-errores';
 import { Injectable, ErrorHandler, NgZone } from '@angular/core';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
-import { AlertDialog } from './cuadro-dialogo.component';
+import { AlertDialog, sendAPIBackend, sendAPIFront } from './cuadro-dialogo.component';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { AplicacionErrorDto, TrazabilidadCodigoDto } from './interfaces';
+import { getnameApp } from './getNameApp';
 
 export class getIpJs {
   /**
@@ -59,6 +61,9 @@ Handles an error and displays a modal dialog to the user to report the error.
 */
   override handleError(err: any): void {
     // Obtiene la hora actual y la información del navegador
+    let aplicacionError: AplicacionErrorDto;
+
+
     let time = new Date();
     let trazabilidad: any;
     let mensajeError: any;
@@ -66,12 +71,15 @@ Handles an error and displays a modal dialog to the user to report the error.
     let navegator = navigator.userAgent;
     let trazaStatus = getCallStackhtpp();
     let origen: string;
+
+
+
     // get Id addres
     const instancia = new getIpJs();
     instancia.obtenerDireccionIP((direcionIp) => {
       this.ip = direcionIp;
       const eventosUsuario = saveError(err.message);
-      let status: number;
+      let status: number=-1;
 
       if (getCallStackhtpp().length > 0 && err instanceof HttpErrorResponse) {
         status = err.status;
@@ -95,6 +103,55 @@ Handles an error and displays a modal dialog to the user to report the error.
           origen = 'Frontend';
         }
         mensajeError = createError().handleError(err)[1];
+      }
+
+
+      aplicacionError = {
+        tituloError: "",
+        descripcionError: "",
+        nombreAplicacion: getnameApp(),
+        horaError: time.toISOString(),
+        ipUsuario: this.ip,
+        navegadorUsuario: navegator,
+      };
+
+      let trazabilidadCodigo: TrazabilidadCodigoDto;
+      trazabilidadCodigo = {
+        trazaError: trazabilidad,
+        origen: origen,
+      };
+
+      if(status===409){
+        sendAPIBackend(
+          idBackend,
+          aplicacionError,
+          trazabilidadCodigo,
+          eventosUsuario
+        ).subscribe({
+          next: (response) => {
+            //Displays the successful request and the error ID.
+          },
+          error: (err) => {
+            //Displays that there was an error in the request.
+            err;
+          },
+        });
+
+      }else{
+        sendAPIFront(
+          aplicacionError,
+          trazabilidadCodigo,
+          eventosUsuario
+        ).subscribe({
+          next: (response) => {
+            //Displays the successful request and the error ID.
+
+          },
+          error: (err) => {
+            //Displays that there was an error in the request.
+          },
+        });
+
       }
 
       // Opens a modal dialog to report the error to the user.

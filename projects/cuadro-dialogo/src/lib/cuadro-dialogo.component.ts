@@ -4,7 +4,7 @@ import {
   MAT_DIALOG_DATA,
 } from '@angular/material/dialog';
 import { Component, Inject, Injectable, OnInit, NgZone } from '@angular/core';
-import { AplicacionErrorDto, TrazabilidadCodigoDto } from './interfaces';
+import { AplicacionErrorDto, Issue, TrazabilidadCodigoDto } from './interfaces';
 import { ServicehttpAPIError } from './httpservice';
 import { HttpClient, HttpBackend, HttpXhrBackend } from '@angular/common/http';
 import { DatePipe, Time, XhrFactory } from '@angular/common';
@@ -91,60 +91,20 @@ Creates a new instance of AlertDialog.
   }
   //Method that is executed to close the dialog and send the error information to the backend.
   async enviar() {
-    let aplicacionError: AplicacionErrorDto;
+  let issue: any;
 
-    aplicacionError = {
-      tituloError: this.nombre,
-      descripcionError: this.descripcion,
-      nombreAplicacion: getnameApp(),
-      horaError: this.tiempo.toISOString(),
-      ipUsuario: this.ipUsuario,
-      navegadorUsuario: this.navegadorUsuario,
-    };
+  issue={
+    summary:"Error presentado",
+    description:"",
+    projectname:""
+  }
+    sendJira(issue).subscribe({next :(response)=>{
 
-    let trazabilidadCodigo: TrazabilidadCodigoDto;
-    trazabilidadCodigo = {
-      trazaError: this.trazabilidad,
-      origen: this.origen,
-    };
+    },error: (err)=>{
+
+    }})
     //Evaluates if the error comes from the backend with status 409.
-    if (this.status == 409) {
-      sendAPIBackend(
-        this.idBackend,
-        aplicacionError,
-        trazabilidadCodigo,
-        this.eventosUsuario
-      ).subscribe({
-        next: (response) => {
-          //Displays the successful request and the error ID.
-          this.resp = this.idBackend;
-          response;
-          this.showDialog = true;
-        },
-        error: (err) => {
-          //Displays that there was an error in the request.
-          this.errorDialog = true;
-          err;
-        },
-      });
-    } else {
-      //In case the error is from the frontend, it will persist it as a frontend error and make the necessary service call.
-      sendAPIFront(
-        aplicacionError,
-        trazabilidadCodigo,
-        this.eventosUsuario
-      ).subscribe({
-        next: (response) => {
-          //Displays the successful request and the error ID.
-          this.resp = response;
-          this.showDialog = true;
-        },
-        error: (err) => {
-          //Displays that there was an error in the request.
-          this.errorDialog = true;
-        },
-      });
-    }
+
   }
 
   cerrar() {
@@ -175,7 +135,7 @@ Sends an API request to save application errors and user events on the frontend.
 @param userEvents - Object containing information about user events.
 @returns An Observable that emits an API response.
 */
-function sendAPIFront(
+export function sendAPIFront(
   aplicacionError: AplicacionErrorDto,
   trazabilidad_codigo: TrazabilidadCodigoDto,
   eventosUsuario: any
@@ -188,6 +148,14 @@ function sendAPIFront(
     trazabilidad_codigo,
     eventosUsuario
   );
+}
+
+
+function sendJira(issue:Issue){
+  const xhrFactory = new MyXhrFactory();
+  const httpBackend = new HttpXhrBackend(xhrFactory);
+  const serviceApi = new ServicehttpAPIError(new HttpClient(httpBackend));
+ return serviceApi.saveApiJira(issue)
 }
 
 /**
@@ -214,7 +182,7 @@ Sends an API request to save user events on the backend.
 @param userEvents - Object containing information about user events.
 @returns An Observable that emits an API response.
 */
-function sendAPIBackend(
+export function sendAPIBackend(
   idaplicacionError: number,
   aplicacionError: AplicacionErrorDto,
   trazabilidad_codigo: TrazabilidadCodigoDto,
