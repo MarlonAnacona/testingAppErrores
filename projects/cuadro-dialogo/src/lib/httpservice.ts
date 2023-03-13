@@ -65,7 +65,7 @@ Stores traceability and user actions for a specific application error.
     );
   }
 
-  saveApiJira(issue: Issue) {
-    return this.http.post(`${this.baseUrl}/createIssue/save`, issue);
+  saveApiJira(issue: Issue): Observable<any> {
+    return this.http.post(`${this.baseUrl}createIssue/save`, issue);
   }
 }

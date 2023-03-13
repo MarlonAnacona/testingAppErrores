@@ -26,11 +26,7 @@ export class LoginComponent implements OnInit {
         console.log(resp);
       },
       error: (err) => {
-        crearCuadroError(
-          this.matDialog,
-          this.ngzone,
-          Error(err).stack
-        ).handleError(err);
+        console.log(err);
       },
     });
   }

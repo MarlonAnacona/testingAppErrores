@@ -1,15 +1,21 @@
+import { MatDialog } from '@angular/material/dialog';
 import {
   HttpInterceptor,
   HttpRequest,
   HttpHandler,
   HttpEvent,
+  HttpErrorResponse,
+  HttpResponse,
 } from '@angular/common/http';
-import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Injectable, NgZone } from '@angular/core';
+import { catchError, Observable, of, tap } from 'rxjs';
 import { saveRequestHTTP } from 'event-logs';
+import { getError, getnameMethod } from './getNameApp';
+import { crearCuadroError } from './cuadro-dialogo.service';
 
 @Injectable()
 export class MyInterceptor implements HttpInterceptor {
+  constructor(private matDialog: MatDialog, private ngZone: NgZone) {}
   /**
    * Intercepts an outgoing HTTP request and logs the request method and URL.
    * @param {HttpRequest<any>} req - The outgoing HTTP request.
@@ -21,8 +27,33 @@ export class MyInterceptor implements HttpInterceptor {
     next: HttpHandler
   ): Observable<HttpEvent<any>> {
     this.logRequest(req.method, req.url);
-    return next.handle(req);
+    const errorHeaderName = 'X-Error-Stack-Trace';
+
+    return next.handle(req).pipe(
+      catchError((err: HttpErrorResponse) => {
+        const errorWithStack = new Error(err.message);
+        const newHeaders = err.headers.set(
+          errorHeaderName,
+          errorWithStack.stack || ''
+        );
+        const clonedResponse = new HttpResponse({
+          status: err.status,
+          statusText: err.statusText,
+          headers: newHeaders,
+          url: err.url || undefined,
+          body: err.error || undefined,
+        }); // Aquí puedes manejar el error como quieras
+        crearCuadroError(
+          this.matDialog,
+          this.ngZone,
+          errorWithStack.stack
+        ).handleError(err);
+        // Devolvemos un observable que emite cualquier valor que no sea un error
+        throw err;
+      })
+    );
   }
+  
   /**
    * Logs the request method and URL.
    * @param {string} method - The HTTP method of the request.

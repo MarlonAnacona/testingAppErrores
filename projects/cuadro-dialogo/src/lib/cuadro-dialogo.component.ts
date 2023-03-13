@@ -91,20 +91,25 @@ Creates a new instance of AlertDialog.
   }
   //Method that is executed to close the dialog and send the error information to the backend.
   async enviar() {
-  let issue: any;
-
-  issue={
-    summary:"Error presentado",
-    description:"",
-    projectname:""
-  }
-    sendJira(issue).subscribe({next :(response)=>{
-
-    },error: (err)=>{
-
-    }})
+    let issue: any;
+    let descriptionSend: string = `Error presentado en la aplicación: ${getnameApp()} \n Identificado con código: ${
+      this.idBackend
+    }`;
+    issue = {
+      summary: 'Error presentado',
+      description: descriptionSend,
+      projectname: 'TEC',
+    };
+    sendJira(issue).subscribe({
+      next: (response) => {
+        this.errorDialog = true;
+      },
+      error: (err) => {
+        this.resp = this.idBackend;
+        this.showDialog = true;
+      },
+    });
     //Evaluates if the error comes from the backend with status 409.
-
   }
 
   cerrar() {
@@ -150,12 +155,11 @@ export function sendAPIFront(
   );
 }
 
-
-function sendJira(issue:Issue){
+function sendJira(issue: Issue) {
   const xhrFactory = new MyXhrFactory();
   const httpBackend = new HttpXhrBackend(xhrFactory);
   const serviceApi = new ServicehttpAPIError(new HttpClient(httpBackend));
- return serviceApi.saveApiJira(issue)
+  return serviceApi.saveApiJira(issue);
 }
 
 /**
