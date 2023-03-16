@@ -1,7 +1,7 @@
 import { Router, NavigationStart, NavigationEnd } from '@angular/router';
 import { Injectable } from '@angular/core';
 import { saveNavigation } from 'event-logs';
-import { errorName, nameMethod } from './getNameApp';
+import { errorName } from './getNameApp';
 
 @Injectable()
 export class RouterEvents {
@@ -21,8 +21,6 @@ export class RouterEvents {
       }
       if (event instanceof NavigationEnd) {
         navigationend = this.router.url.toString();
-        nameMethod(this.getCurrentMethodName());
-        console.log(errorName(this.getError()));
 
         this.saveNavigation(navigationstart, navigationend);
       }
@@ -43,15 +41,5 @@ export class RouterEvents {
       navigation = `{from: "${start}", to: "${end}"}`;
     }
     saveNavigation(navigation);
-  }
-
-  getCurrentMethodName(): string | undefined {
-    const error = new Error();
-    return error.stack;
-  }
-
-  getError(): Error {
-    const error = new Error();
-    return error;
   }
 }

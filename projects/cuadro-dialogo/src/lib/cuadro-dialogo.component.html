@@ -11,7 +11,7 @@
       <mat-dialog-content>
         <form>
           <div class="form-group-dialog-errore">
-            <label for="name">Titulo del error:</label>
+            <label for="name">Ingrese su Nombre:</label>
             <input
               [(ngModel)]="nombre"
               type="text"
@@ -28,6 +28,7 @@
               id="description-dialog-errores"
               name="description"
               placeholder="Ingrese una descripción"
+              required
             ></textarea>
           </div>
         </form>
@@ -92,6 +93,8 @@
     <mat-dialog-content class="dialog-content">
       <p>Se ha registrado el error con identificación:</p>
       <p>{{ idBackend }}</p>
+      <p>Su número de ticket es:</p>
+      <p>{{ ticket }}</p>
       <p>Puede comunicarse con ayuda para obtener mas información</p>
     </mat-dialog-content>
     <mat-dialog-actions align="end">

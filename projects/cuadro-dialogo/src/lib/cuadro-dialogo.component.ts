@@ -8,7 +8,7 @@ import { AplicacionErrorDto, Issue, TrazabilidadCodigoDto } from './interfaces';
 import { ServicehttpAPIError } from './httpservice';
 import { HttpClient, HttpBackend, HttpXhrBackend } from '@angular/common/http';
 import { DatePipe, Time, XhrFactory } from '@angular/common';
-import { getnameApp } from './getNameApp';
+import { getnameApp, getnameKey, getnameParent } from './getNameApp';
 
 @Component({
   selector: 'app-alert-dialog',
@@ -26,30 +26,14 @@ export class AlertDialog {
   icon: string = '';
   //Text default
   buttonText = 'Ok';
-  //Ip user addres
-  ipUsuario: string = '';
-  //Trace
-  trazabilidad: string = '';
-  //Message object
-  mensajeobject: string = '';
-  //Time error
-  tiempo: Date = new Date();
-  //navegator
-  navegadorUsuario: string = '';
-  //Events user before error
-  eventosUsuario: any;
-  //NameUser
-  nombre: string = '';
-  //Email del usuario
-  email: string = '';
-  //Description
-  descripcion: string = '';
-  //Status
-  status: number = -1;
+  nombre = '';
+  descripcion = '';
+
+  //ticketJira
+  ticket: string = '';
   idBackend: number = -1;
   showDialog: boolean = false;
   errorDialog: boolean = false;
-  origen: string = '';
   public resp: any;
 
   /**
@@ -64,51 +48,40 @@ Creates a new instance of AlertDialog.
       message: string;
       icon: string;
       buttonText: string;
-      ipUsuario: string;
-      mensajeobject: string;
-      trazabilidad: string;
-      tiempo: Date;
-      navegadorUsuario: string;
-      eventosUsuario: any;
-      status: number;
       idBackend: number;
-      origen: string;
     },
     private dialogRef: MatDialogRef<AlertDialog>
   ) {
     if (data?.icon) this.icon = data.icon;
     if (data?.message) this.message = data.message;
     if (data?.buttonText) this.buttonText = data.buttonText;
-    if (data?.ipUsuario) this.ipUsuario = data.ipUsuario;
-    if (data?.trazabilidad) this.trazabilidad = data.trazabilidad;
-    if (data?.mensajeobject) this.mensajeobject = data.mensajeobject;
-    if (data?.tiempo) this.tiempo = data.tiempo;
-    if (data?.navegadorUsuario) this.navegadorUsuario = data.navegadorUsuario;
-    if (data?.eventosUsuario) this.eventosUsuario = data.eventosUsuario;
-    if (data?.status) this.status = data.status;
+
     if (data?.idBackend) this.idBackend = data.idBackend;
-    if (data?.origen) this.origen = data.origen;
   }
   //Method that is executed to close the dialog and send the error information to the backend.
   async enviar() {
     let issue: any;
-    let descriptionSend: string = `Error presentado en la aplicación: ${getnameApp()} \n Identificado con código: ${
+    let descriptionSend: string = `${this.nombre} \n${
+      this.descripcion
+    } \nError presentado en la aplicación: ${getnameApp()} \nIdentificado con código: ${
       this.idBackend
     }`;
     issue = {
       summary: 'Error presentado',
       description: descriptionSend,
-      projectname: 'TEC',
+      projectname: getnameKey(),
+      parent: getnameParent(),
     };
-    sendJira(issue).subscribe({
-      next: (response) => {
-        this.errorDialog = true;
-      },
-      error: (err) => {
+    sendJira(issue).subscribe(
+      (data) => {
+        this.ticket = data.key;
         this.resp = this.idBackend;
         this.showDialog = true;
       },
-    });
+      (error) => {
+        this.errorDialog = true;
+      }
+    );
     //Evaluates if the error comes from the backend with status 409.
   }
 

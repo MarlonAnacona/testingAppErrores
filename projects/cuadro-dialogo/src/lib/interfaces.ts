@@ -16,4 +16,5 @@ export interface Issue {
   summary: string;
   description: string;
   projectname: string;
+  parent: string;
 }

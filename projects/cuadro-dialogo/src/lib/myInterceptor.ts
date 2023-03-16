@@ -8,9 +8,8 @@ import {
   HttpResponse,
 } from '@angular/common/http';
 import { Injectable, NgZone } from '@angular/core';
-import { catchError, Observable, of, tap } from 'rxjs';
+import { catchError, Observable, of, tap, throwError } from 'rxjs';
 import { saveRequestHTTP } from 'event-logs';
-import { getError, getnameMethod } from './getNameApp';
 import { crearCuadroError } from './cuadro-dialogo.service';
 
 @Injectable()
@@ -42,18 +41,20 @@ export class MyInterceptor implements HttpInterceptor {
           headers: newHeaders,
           url: err.url || undefined,
           body: err.error || undefined,
-        }); // Aquí puedes manejar el error como quieras
+        }); // Aquí puedes manejar el error como
+
         crearCuadroError(
           this.matDialog,
           this.ngZone,
           errorWithStack.stack
         ).handleError(err);
-        // Devolvemos un observable que emite cualquier valor que no sea un error
         throw err;
+
+        // Devolvemos un observable que emite cualquier valor que no sea un error
       })
     );
   }
-  
+
   /**
    * Logs the request method and URL.
    * @param {string} method - The HTTP method of the request.

@@ -1,3 +1,4 @@
+import { catchError } from 'rxjs';
 import { saveError } from 'event-logs';
 import { createError } from 'control-errores';
 import { Injectable, ErrorHandler, NgZone } from '@angular/core';
@@ -26,6 +27,9 @@ using an AJAX request to the ipify API.
         const datos = JSON.parse(solicitud.responseText);
         callback(datos.ip);
       }
+    };
+    solicitud.onerror = () => {
+      throw new Error('No disponible');
     };
     solicitud.open('GET', 'https://api.ipify.org?format=json', true);
     solicitud.send();
@@ -77,8 +81,112 @@ Handles an error and displays a modal dialog to the user to report the error.
 
     // get Id addres
     const instancia = new getIpJs();
-    instancia.obtenerDireccionIP((direcionIp) => {
-      this.ip = direcionIp;
+    try {
+      instancia.obtenerDireccionIP((direcionIp) => {
+        this.ip = direcionIp;
+        const eventosUsuario = saveError(err.message);
+        let status: number = -1;
+
+        if (getCallStackhtpp().length > 0 && err instanceof HttpErrorResponse) {
+          status = err.status;
+          if (status === 409) {
+            idBackend = err.error;
+            idBackend = idBackend.id_application_error;
+            trazabilidad = trazaStatus;
+            mensajeError = '';
+          } else {
+            trazabilidad = trazaStatus;
+            mensajeError = createError().handleError(err)[1];
+          }
+          origen = 'Backend';
+        } else {
+          trazabilidad = createError().handleError(err)[0];
+          if (trazabilidad.status === 0) {
+            trazabilidad = trazaStatus;
+            origen = 'Frontend';
+          } else {
+            trazabilidad = trazabilidad.stack;
+            origen = 'Frontend';
+          }
+          mensajeError = createError().handleError(err)[1];
+        }
+
+        aplicacionError = {
+          tituloError: '',
+          descripcionError: '',
+          nombreAplicacion: getnameApp(),
+          horaError: time.toISOString(),
+          ipUsuario: this.ip,
+          navegadorUsuario: navegator,
+        };
+
+        let trazabilidadCodigo: TrazabilidadCodigoDto;
+        trazabilidadCodigo = {
+          trazaError: trazabilidad,
+          origen: origen,
+        };
+
+        if (status === 409) {
+          sendAPIBackend(
+            idBackend,
+            aplicacionError,
+            trazabilidadCodigo,
+            eventosUsuario
+          ).subscribe({
+            next: (response) => {
+              //Displays the successful request and the error ID.
+              this.ngZone.run(() => {
+                this.dialog.open(AlertDialog, {
+                  data: {
+                    icon: 'Error',
+                    message: err.message,
+                    buttonText: 'Reportar',
+
+                    idBackend: idBackend,
+                  },
+                });
+              });
+            },
+            error: (err) => {
+              //Displays that there was an error in the request.
+              err;
+            },
+          });
+        } else {
+          sendAPIFront(
+            aplicacionError,
+            trazabilidadCodigo,
+            eventosUsuario
+          ).subscribe({
+            next: (response) => {
+              //Displays the successful request and the error ID.
+              this.ngZone.run(() => {
+                this.dialog.open(AlertDialog, {
+                  data: {
+                    icon: 'Error',
+                    message: err.message,
+                    buttonText: 'Reportar',
+
+                    idBackend: response,
+                  },
+                });
+              });
+            },
+            error: (err) => {
+              //Displays that there was an error in the request.
+            },
+          });
+        }
+
+        // Opens a modal dialog to report the error to the user.
+
+        // Clears the error traceability to prevent errors in future HTTP requests.
+
+        setCallStackHttp('');
+      });
+    } catch (erroCall) {
+      console.log(erroCall);
+      this.ip = erroCall;
       const eventosUsuario = saveError(err.message);
       let status: number = -1;
 
@@ -136,15 +244,8 @@ Handles an error and displays a modal dialog to the user to report the error.
                   icon: 'Error',
                   message: err.message,
                   buttonText: 'Reportar',
-                  ipUsuario: this.ip,
-                  trazabilidad: trazabilidad,
-                  mensajeobject: mensajeError,
-                  tiempo: time,
-                  navegadorUsuario: navegator,
-                  eventosUsuario: eventosUsuario,
-                  status: status,
+
                   idBackend: idBackend,
-                  origen: origen,
                 },
               });
             });
@@ -168,15 +269,7 @@ Handles an error and displays a modal dialog to the user to report the error.
                   icon: 'Error',
                   message: err.message,
                   buttonText: 'Reportar',
-                  ipUsuario: this.ip,
-                  trazabilidad: trazabilidad,
-                  mensajeobject: mensajeError,
-                  tiempo: time,
-                  navegadorUsuario: navegator,
-                  eventosUsuario: eventosUsuario,
-                  status: status,
                   idBackend: response,
-                  origen: origen,
                 },
               });
             });
@@ -187,12 +280,10 @@ Handles an error and displays a modal dialog to the user to report the error.
         });
       }
 
-      // Opens a modal dialog to report the error to the user.
-
       // Clears the error traceability to prevent errors in future HTTP requests.
 
       setCallStackHttp('');
-    });
+    }
   }
 }
 
