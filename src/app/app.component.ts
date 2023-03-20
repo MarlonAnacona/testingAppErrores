@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { RouterEvents, nameApp, nameKey, nameKeyParent } from 'cuadroDialogo';
+import { RouterEvents, nameApp, nameKey, nameKeyParent, userInfoKeys} from 'cuadroDialogo';
 
 @Component({
   selector: 'app-root',
@@ -14,6 +14,7 @@ export class AppComponent implements OnInit {
     nameApp('Aplicación prueba');
     nameKey('TEC');
     nameKeyParent('TEC-19');
+    userInfoKeys('savedEmail',undefined,true)
     //throw new Error('pruebita login');
   }
   title = 'library';

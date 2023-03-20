@@ -6,6 +6,7 @@ export interface AplicacionErrorDto {
   horaError: string;
   ipUsuario: string;
   navegadorUsuario: string;
+  userinfo: UserInfo;
 }
 export interface TrazabilidadCodigoDto {
   trazaError: string;
@@ -17,4 +18,9 @@ export interface Issue {
   description: string;
   projectname: string;
   parent: string;
+}
+
+export interface UserInfo {
+  fullname : string;
+  email: string;
 }
