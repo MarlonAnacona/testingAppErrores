@@ -8,34 +8,39 @@ import {
   sendAPIBackend,
   sendAPIFront,
 } from './cuadro-dialogo.component';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import {
+  HttpClient,
+  HttpErrorResponse,
+  HttpXhrBackend,
+} from '@angular/common/http';
 import { AplicacionErrorDto, TrazabilidadCodigoDto } from './interfaces';
 import { getnameApp } from './getNameApp';
+import { XhrFactory } from '@angular/common';
+import { ServicehttpAPIError } from './httpservice';
 
-export class getIpJs {
+let callstack: string = '';
+
+/**
+
+Class that implements the XhrFactory interface to provide a custom factory for Angular's HttpClient.
+*/
+class MyXhrFactory1 implements XhrFactory {
   /**
 
-Method that allows to obtain the client's IP address
-using an AJAX request to the ipify API.
-@param callback - function that will be called once the IP address has been obtained
-@returns void
+Creates and returns a new instance of XMLHttpRequest.
+@returns A new instance of XMLHttpRequest.
 */
-  obtenerDireccionIP(callback: (direccionIP: string) => void) {
-    const solicitud = new XMLHttpRequest();
-    solicitud.onreadystatechange = () => {
-      if (solicitud.readyState === 4 && solicitud.status === 200) {
-        const datos = JSON.parse(solicitud.responseText);
-        callback(datos.ip);
-      }
-    };
-    solicitud.onerror = () => {
-      throw new Error('No disponible');
-    };
-    solicitud.open('GET', 'https://api.ipify.org?format=json', true);
-    solicitud.send();
+  build(): XMLHttpRequest {
+    return new XMLHttpRequest();
   }
 }
-let callstack: string = '';
+
+function getDireccionIp() {
+  const xhrFactory = new MyXhrFactory1();
+  const httpBackend = new HttpXhrBackend(xhrFactory);
+  const serviceApi = new ServicehttpAPIError(new HttpClient(httpBackend));
+  return serviceApi.obtenerDireccionIP();
+}
 
 @Injectable()
 /**
@@ -53,7 +58,6 @@ User's IP address.
   /**
 
 /**
-
 Creates an instance of the service.
 @param dialog Angular's MatDialog service to display a modal dialog.
 @param ngZone Angular's NgZone service to execute code within the Angular zone.
@@ -70,7 +74,6 @@ Handles an error and displays a modal dialog to the user to report the error.
   override handleError(err: any): void {
     // Obtiene la hora actual y la información del navegador
     let aplicacionError: AplicacionErrorDto;
-
     let time = new Date();
     let trazabilidad: any;
     let mensajeError: any;
@@ -79,37 +82,35 @@ Handles an error and displays a modal dialog to the user to report the error.
     let trazaStatus = getCallStackhtpp();
     let origen: string;
 
+    const eventosUsuario = saveError(err.message);
+    let status: number = -1;
+    if (getCallStackhtpp().length > 0 && err instanceof HttpErrorResponse) {
+      status = err.status;
+      if (status === 409) {
+        idBackend = err.error;
+        idBackend = idBackend.id_application_error;
+        trazabilidad = trazaStatus;
+        mensajeError = '';
+      } else {
+        trazabilidad = trazaStatus;
+        mensajeError = createError().handleError(err)[1];
+      }
+      origen = 'Backend';
+    } else {
+      trazabilidad = createError().handleError(err)[0];
+      if (trazabilidad.status === 0) {
+        trazabilidad = trazaStatus;
+        origen = 'Frontend';
+      } else {
+        trazabilidad = trazabilidad.stack;
+        origen = 'Frontend';
+      }
+      mensajeError = createError().handleError(err)[1];
+    }
     // get Id addres
-    const instancia = new getIpJs();
-    try {
-      instancia.obtenerDireccionIP((direcionIp) => {
-        this.ip = direcionIp;
-        const eventosUsuario = saveError(err.message);
-        let status: number = -1;
-
-        if (getCallStackhtpp().length > 0 && err instanceof HttpErrorResponse) {
-          status = err.status;
-          if (status === 409) {
-            idBackend = err.error;
-            idBackend = idBackend.id_application_error;
-            trazabilidad = trazaStatus;
-            mensajeError = '';
-          } else {
-            trazabilidad = trazaStatus;
-            mensajeError = createError().handleError(err)[1];
-          }
-          origen = 'Backend';
-        } else {
-          trazabilidad = createError().handleError(err)[0];
-          if (trazabilidad.status === 0) {
-            trazabilidad = trazaStatus;
-            origen = 'Frontend';
-          } else {
-            trazabilidad = trazabilidad.stack;
-            origen = 'Frontend';
-          }
-          mensajeError = createError().handleError(err)[1];
-        }
+    getDireccionIp().subscribe(
+      (direcionIp) => {
+        this.ip = direcionIp.ip;
 
         aplicacionError = {
           tituloError: '',
@@ -126,7 +127,101 @@ Handles an error and displays a modal dialog to the user to report the error.
           origen: origen,
         };
 
-        if (status === 409) {
+        if (status >= 500) {
+          sendAPIBackend(
+            idBackend,
+            aplicacionError,
+            trazabilidadCodigo,
+            eventosUsuario
+          ).subscribe({
+            next: (response) => {
+              //Displays the successful request and the error ID.
+              // Opens a modal dialog to report the error to the user.
+              this.ngZone.run(() => {
+                this.dialog.open(AlertDialog, {
+                  data: {
+                    icon: 'Error',
+                    message: err.message,
+                    buttonText: 'Reportar',
+                    idBackend: idBackend,
+                    errorService: false,
+                  },
+                });
+              });
+            },
+            error: (err) => {
+              //Displays that there was an error in the request.
+              this.ngZone.run(() => {
+                this.dialog.open(AlertDialog, {
+                  data: {
+                    icon: 'Error',
+                    message: err.message,
+                    buttonText: 'Reportar',
+                    idBackend: '',
+                    errorService: true,
+                  },
+                });
+              });
+            },
+          });
+        } else {
+          sendAPIFront(
+            aplicacionError,
+            trazabilidadCodigo,
+            eventosUsuario
+          ).subscribe({
+            next: (response) => {
+              //Displays the successful request and the error ID.
+              // Opens a modal dialog to report the error to the user.
+              this.ngZone.run(() => {
+                this.dialog.open(AlertDialog, {
+                  data: {
+                    icon: 'Error',
+                    message: err.message,
+                    buttonText: 'Reportar',
+                    idBackend: response,
+                    errorService: false,
+                  },
+                });
+              });
+            },
+            error: (err) => {
+              //Displays that there was an error in the request.
+              this.ngZone.run(() => {
+                this.dialog.open(AlertDialog, {
+                  data: {
+                    icon: 'Error',
+                    message: err.message,
+                    buttonText: 'Reportar',
+                    idBackend: '',
+                    errorService: true,
+                  },
+                });
+              });
+            },
+          });
+        }
+        // Clears the error traceability to prevent errors in future HTTP requests.
+        setCallStackHttp('');
+      },
+      (error) => {
+        this.ip = 'No Disponible';
+        aplicacionError = {
+          tituloError: '',
+          descripcionError: '',
+          nombreAplicacion: getnameApp(),
+          horaError: time.toISOString(),
+          ipUsuario: this.ip,
+          navegadorUsuario: navegator,
+        };
+
+        let trazabilidadCodigo: TrazabilidadCodigoDto;
+        trazabilidadCodigo = {
+          trazaError: trazabilidad,
+          origen: origen,
+        };
+
+        if (status >= 500) {
           sendAPIBackend(
             idBackend,
             aplicacionError,
@@ -141,15 +236,25 @@ Handles an error and displays a modal dialog to the user to report the error.
                     icon: 'Error',
                     message: err.message,
                     buttonText: 'Reportar',
-
                     idBackend: idBackend,
+                    errorService: false,
                   },
                 });
               });
             },
             error: (err) => {
               //Displays that there was an error in the request.
-              err;
+              this.ngZone.run(() => {
+                this.dialog.open(AlertDialog, {
+                  data: {
+                    icon: 'Error',
+                    message: err.message,
+                    buttonText: 'Reportar',
+                    idBackend: '',
+                    errorService: true,
+                  },
+                });
+              });
             },
           });
         } else {
@@ -166,124 +271,32 @@ Handles an error and displays a modal dialog to the user to report the error.
                     icon: 'Error',
                     message: err.message,
                     buttonText: 'Reportar',
-
                     idBackend: response,
+                    errorService: false,
                   },
                 });
               });
             },
             error: (err) => {
               //Displays that there was an error in the request.
+              this.ngZone.run(() => {
+                this.dialog.open(AlertDialog, {
+                  data: {
+                    icon: 'Error',
+                    message: err.message,
+                    buttonText: 'Reportar',
+                    idBackend: '',
+                    errorService: true,
+                  },
+                });
+              });
             },
           });
         }
-
-        // Opens a modal dialog to report the error to the user.
-
         // Clears the error traceability to prevent errors in future HTTP requests.
-
         setCallStackHttp('');
-      });
-    } catch (erroCall) {
-      console.log(erroCall);
-      this.ip = erroCall;
-      const eventosUsuario = saveError(err.message);
-      let status: number = -1;
-
-      if (getCallStackhtpp().length > 0 && err instanceof HttpErrorResponse) {
-        status = err.status;
-        if (status === 409) {
-          idBackend = err.error;
-          idBackend = idBackend.id_application_error;
-          trazabilidad = trazaStatus;
-          mensajeError = '';
-        } else {
-          trazabilidad = trazaStatus;
-          mensajeError = createError().handleError(err)[1];
-        }
-        origen = 'Backend';
-      } else {
-        trazabilidad = createError().handleError(err)[0];
-        if (trazabilidad.status === 0) {
-          trazabilidad = trazaStatus;
-          origen = 'Frontend';
-        } else {
-          trazabilidad = trazabilidad.stack;
-          origen = 'Frontend';
-        }
-        mensajeError = createError().handleError(err)[1];
       }
-
-      aplicacionError = {
-        tituloError: '',
-        descripcionError: '',
-        nombreAplicacion: getnameApp(),
-        horaError: time.toISOString(),
-        ipUsuario: this.ip,
-        navegadorUsuario: navegator,
-      };
-
-      let trazabilidadCodigo: TrazabilidadCodigoDto;
-      trazabilidadCodigo = {
-        trazaError: trazabilidad,
-        origen: origen,
-      };
-
-      if (status === 409) {
-        sendAPIBackend(
-          idBackend,
-          aplicacionError,
-          trazabilidadCodigo,
-          eventosUsuario
-        ).subscribe({
-          next: (response) => {
-            //Displays the successful request and the error ID.
-            this.ngZone.run(() => {
-              this.dialog.open(AlertDialog, {
-                data: {
-                  icon: 'Error',
-                  message: err.message,
-                  buttonText: 'Reportar',
-
-                  idBackend: idBackend,
-                },
-              });
-            });
-          },
-          error: (err) => {
-            //Displays that there was an error in the request.
-            err;
-          },
-        });
-      } else {
-        sendAPIFront(
-          aplicacionError,
-          trazabilidadCodigo,
-          eventosUsuario
-        ).subscribe({
-          next: (response) => {
-            //Displays the successful request and the error ID.
-            this.ngZone.run(() => {
-              this.dialog.open(AlertDialog, {
-                data: {
-                  icon: 'Error',
-                  message: err.message,
-                  buttonText: 'Reportar',
-                  idBackend: response,
-                },
-              });
-            });
-          },
-          error: (err) => {
-            //Displays that there was an error in the request.
-          },
-        });
-      }
-
-      // Clears the error traceability to prevent errors in future HTTP requests.
-
-      setCallStackHttp('');
-    }
+    );
   }
 }
 

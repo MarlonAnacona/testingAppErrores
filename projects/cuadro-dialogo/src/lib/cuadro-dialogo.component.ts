@@ -1,3 +1,4 @@
+import { Observable } from 'rxjs';
 import {
   MatDialog,
   MatDialogRef,
@@ -34,6 +35,7 @@ export class AlertDialog {
   idBackend: number = -1;
   showDialog: boolean = false;
   errorDialog: boolean = false;
+  errorService: boolean = false;
   public resp: any;
 
   /**
@@ -49,14 +51,15 @@ Creates a new instance of AlertDialog.
       icon: string;
       buttonText: string;
       idBackend: number;
+      errorService: boolean;
     },
     private dialogRef: MatDialogRef<AlertDialog>
   ) {
     if (data?.icon) this.icon = data.icon;
     if (data?.message) this.message = data.message;
     if (data?.buttonText) this.buttonText = data.buttonText;
-
     if (data?.idBackend) this.idBackend = data.idBackend;
+    if (data.errorService) this.errorDialog = true;
   }
   //Method that is executed to close the dialog and send the error information to the backend.
   async enviar() {
@@ -82,9 +85,9 @@ Creates a new instance of AlertDialog.
         this.errorDialog = true;
       }
     );
-    //Evaluates if the error comes from the backend with status 409.
   }
 
+  //Close the matDialog
   cerrar() {
     this.dialogRef.close();
   }

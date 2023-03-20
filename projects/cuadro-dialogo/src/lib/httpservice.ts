@@ -68,4 +68,8 @@ Stores traceability and user actions for a specific application error.
   saveApiJira(issue: Issue): Observable<any> {
     return this.http.post(`${this.baseUrl}createIssue/save`, issue);
   }
+
+  obtenerDireccionIP(): Observable<any> {
+    return this.http.get('https://api.ipify.org?format=json');
+  }
 }

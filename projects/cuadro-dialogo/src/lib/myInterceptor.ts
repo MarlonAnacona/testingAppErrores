@@ -30,26 +30,30 @@ export class MyInterceptor implements HttpInterceptor {
 
     return next.handle(req).pipe(
       catchError((err: HttpErrorResponse) => {
-        const errorWithStack = new Error(err.message);
-        const newHeaders = err.headers.set(
-          errorHeaderName,
-          errorWithStack.stack || ''
-        );
-        const clonedResponse = new HttpResponse({
-          status: err.status,
-          statusText: err.statusText,
-          headers: newHeaders,
-          url: err.url || undefined,
-          body: err.error || undefined,
-        }); // Aquí puedes manejar el error como
+        if (err.status >= 500 || err.status == 0) {
+          const errorWithStack = new Error(err.message);
 
-        crearCuadroError(
-          this.matDialog,
-          this.ngZone,
-          errorWithStack.stack
-        ).handleError(err);
-        throw err;
+          const newHeaders = err.headers.set(
+            errorHeaderName,
+            errorWithStack.stack || ''
+          );
+          const clonedResponse = new HttpResponse({
+            status: err.status,
+            statusText: err.statusText,
+            headers: newHeaders,
+            url: err.url || undefined,
+            body: err.error || undefined,
+          }); // Aquí puedes manejar el error como
 
+          crearCuadroError(
+            this.matDialog,
+            this.ngZone,
+            errorWithStack.stack
+          ).handleError(err);
+          throw err;
+        } else {
+          throw err;
+        }
         // Devolvemos un observable que emite cualquier valor que no sea un error
       })
     );
