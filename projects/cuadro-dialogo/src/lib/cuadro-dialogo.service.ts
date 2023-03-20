@@ -1,46 +1,18 @@
-import { catchError } from 'rxjs';
 import { saveError } from 'event-logs';
 import { createError } from 'control-errores';
 import { Injectable, ErrorHandler, NgZone } from '@angular/core';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
-import {
-  AlertDialog,
-  sendAPIBackend,
-  sendAPIFront,
-} from './cuadro-dialogo.component';
+import { AlertDialog } from './cuadro-dialogo.component';
 import {
   HttpClient,
   HttpErrorResponse,
   HttpXhrBackend,
 } from '@angular/common/http';
+import { getDireccionIp, sendAPIBackend, sendAPIFront } from './httpservice';
 import { AplicacionErrorDto, TrazabilidadCodigoDto } from './interfaces';
 import { getnameApp } from './getNameApp';
-import { XhrFactory } from '@angular/common';
-import { ServicehttpAPIError } from './httpservice';
 
 let callstack: string = '';
-
-/**
-
-Class that implements the XhrFactory interface to provide a custom factory for Angular's HttpClient.
-*/
-class MyXhrFactory1 implements XhrFactory {
-  /**
-
-Creates and returns a new instance of XMLHttpRequest.
-@returns A new instance of XMLHttpRequest.
-*/
-  build(): XMLHttpRequest {
-    return new XMLHttpRequest();
-  }
-}
-
-function getDireccionIp() {
-  const xhrFactory = new MyXhrFactory1();
-  const httpBackend = new HttpXhrBackend(xhrFactory);
-  const serviceApi = new ServicehttpAPIError(new HttpClient(httpBackend));
-  return serviceApi.obtenerDireccionIP();
-}
 
 @Injectable()
 /**

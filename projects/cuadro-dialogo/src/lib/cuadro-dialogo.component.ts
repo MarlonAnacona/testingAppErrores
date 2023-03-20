@@ -1,14 +1,10 @@
-import { Observable } from 'rxjs';
 import {
   MatDialog,
   MatDialogRef,
   MAT_DIALOG_DATA,
 } from '@angular/material/dialog';
 import { Component, Inject, Injectable, OnInit, NgZone } from '@angular/core';
-import { AplicacionErrorDto, Issue, TrazabilidadCodigoDto } from './interfaces';
-import { ServicehttpAPIError } from './httpservice';
-import { HttpClient, HttpBackend, HttpXhrBackend } from '@angular/common/http';
-import { DatePipe, Time, XhrFactory } from '@angular/common';
+import { sendJira } from './httpservice';
 import { getnameApp, getnameKey, getnameParent } from './getNameApp';
 
 @Component({
@@ -32,9 +28,13 @@ export class AlertDialog {
 
   //ticketJira
   ticket: string = '';
+  //idbackenError
   idBackend: number = -1;
+  //muestra el dialogo cuando se guarda el ticket
   showDialog: boolean = false;
+  //muestra cuando ocurre un error al crear el tick
   errorDialog: boolean = false;
+  //Se muestra cuando no logra guardar el error
   errorService: boolean = false;
   public resp: any;
 
@@ -69,12 +69,14 @@ Creates a new instance of AlertDialog.
     } \nError presentado en la aplicación: ${getnameApp()} \nIdentificado con código: ${
       this.idBackend
     }`;
+    //Estructura a mandar a jira
     issue = {
       summary: 'Error presentado',
       description: descriptionSend,
       projectname: getnameKey(),
       parent: getnameParent(),
     };
+    //Mandar a JIRA
     sendJira(issue).subscribe(
       (data) => {
         this.ticket = data.key;
@@ -91,90 +93,4 @@ Creates a new instance of AlertDialog.
   cerrar() {
     this.dialogRef.close();
   }
-}
-
-/**
-
-Class that implements the XhrFactory interface to provide a custom factory for Angular's HttpClient.
-*/
-class MyXhrFactory implements XhrFactory {
-  /**
-
-Creates and returns a new instance of XMLHttpRequest.
-@returns A new instance of XMLHttpRequest.
-*/
-  build(): XMLHttpRequest {
-    return new XMLHttpRequest();
-  }
-}
-
-/**
-
-Sends an API request to save application errors and user events on the frontend.
-@param applicationError - Object containing information about the application error.
-@param traceabilityCode - Traceability code for tracking the error.
-@param userEvents - Object containing information about user events.
-@returns An Observable that emits an API response.
-*/
-export function sendAPIFront(
-  aplicacionError: AplicacionErrorDto,
-  trazabilidad_codigo: TrazabilidadCodigoDto,
-  eventosUsuario: any
-) {
-  const xhrFactory = new MyXhrFactory();
-  const httpBackend = new HttpXhrBackend(xhrFactory);
-  const serviceApi = new ServicehttpAPIError(new HttpClient(httpBackend));
-  return serviceApi.persistAplicacionErrorFrontEnd(
-    aplicacionError,
-    trazabilidad_codigo,
-    eventosUsuario
-  );
-}
-
-function sendJira(issue: Issue) {
-  const xhrFactory = new MyXhrFactory();
-  const httpBackend = new HttpXhrBackend(xhrFactory);
-  const serviceApi = new ServicehttpAPIError(new HttpClient(httpBackend));
-  return serviceApi.saveApiJira(issue);
-}
-
-/**
-
-Class that implements the XhrFactory interface to provide a custom factory for Angular's HttpClient.
-*/
-class MyXhrFactory1 implements XhrFactory {
-  /**
-
-Creates and returns a new instance of XMLHttpRequest.
-@returns A new instance of XMLHttpRequest.
-*/
-  build(): XMLHttpRequest {
-    return new XMLHttpRequest();
-  }
-}
-
-/**
-
-Sends an API request to save user events on the backend.
-@param applicationErrorId - ID of the application error.
-@param applicationError - Object containing information about the application error.
-@param traceabilityCode - Traceability code for tracking the error.
-@param userEvents - Object containing information about user events.
-@returns An Observable that emits an API response.
-*/
-export function sendAPIBackend(
-  idaplicacionError: number,
-  aplicacionError: AplicacionErrorDto,
-  trazabilidad_codigo: TrazabilidadCodigoDto,
-  eventosUsuario: any
-) {
-  const xhrFactory = new MyXhrFactory1();
-  const httpBackend = new HttpXhrBackend(xhrFactory);
-  const serviceApi = new ServicehttpAPIError(new HttpClient(httpBackend));
-  return serviceApi.saveTrazabilitiyandUserevents(
-    idaplicacionError,
-    aplicacionError,
-    trazabilidad_codigo,
-    eventosUsuario
-  );
 }

@@ -26,25 +26,13 @@ export class MyInterceptor implements HttpInterceptor {
     next: HttpHandler
   ): Observable<HttpEvent<any>> {
     this.logRequest(req.method, req.url);
-    const errorHeaderName = 'X-Error-Stack-Trace';
 
     return next.handle(req).pipe(
       catchError((err: HttpErrorResponse) => {
+        //Manejo de errores que traerá el backend
         if (err.status >= 500 || err.status == 0) {
           const errorWithStack = new Error(err.message);
-
-          const newHeaders = err.headers.set(
-            errorHeaderName,
-            errorWithStack.stack || ''
-          );
-          const clonedResponse = new HttpResponse({
-            status: err.status,
-            statusText: err.statusText,
-            headers: newHeaders,
-            url: err.url || undefined,
-            body: err.error || undefined,
-          }); // Aquí puedes manejar el error como
-
+          //create cuadroError capture the HttpErrorResponse
           crearCuadroError(
             this.matDialog,
             this.ngZone,
@@ -54,7 +42,7 @@ export class MyInterceptor implements HttpInterceptor {
         } else {
           throw err;
         }
-        // Devolvemos un observable que emite cualquier valor que no sea un error
+        // return httpErrorResponse
       })
     );
   }
