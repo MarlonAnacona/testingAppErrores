@@ -11,6 +11,7 @@ import {
 import { getDireccionIp, sendAPIBackend, sendAPIFront } from './httpservice';
 import { AplicacionErrorDto, TrazabilidadCodigoDto } from './interfaces';
 import { getnameApp } from './getNameApp';
+import { getUserInfo } from './getUserLoggedInfo';
 
 let callstack: string = '';
 
@@ -91,6 +92,7 @@ Handles an error and displays a modal dialog to the user to report the error.
           horaError: time.toISOString(),
           ipUsuario: this.ip,
           navegadorUsuario: navegator,
+          userinfo: getUserInfo()
         };
 
         let trazabilidadCodigo: TrazabilidadCodigoDto;
@@ -185,6 +187,7 @@ Handles an error and displays a modal dialog to the user to report the error.
           horaError: time.toISOString(),
           ipUsuario: this.ip,
           navegadorUsuario: navegator,
+          userinfo: getUserInfo(),
         };
 
         let trazabilidadCodigo: TrazabilidadCodigoDto;
