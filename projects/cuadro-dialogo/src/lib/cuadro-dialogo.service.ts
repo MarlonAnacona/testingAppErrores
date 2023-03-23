@@ -59,7 +59,7 @@ Handles an error and displays a modal dialog to the user to report the error.
     let status: number = -1;
     if (getCallStackhtpp().length > 0 && err instanceof HttpErrorResponse) {
       status = err.status;
-      if (status === 409) {
+      if (status >= 500) {
         idBackend = err.error;
         idBackend = idBackend.id_application_error;
         trazabilidad = trazaStatus;
@@ -92,7 +92,7 @@ Handles an error and displays a modal dialog to the user to report the error.
           horaError: time.toISOString(),
           ipUsuario: this.ip,
           navegadorUsuario: navegator,
-          userinfo: getUserInfo()
+          userinfo: getUserInfo(),
         };
 
         let trazabilidadCodigo: TrazabilidadCodigoDto;
