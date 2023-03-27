@@ -109,7 +109,6 @@ Handles an error and displays a modal dialog to the user to report the error.
             eventosUsuario
           ).subscribe({
             next: (response) => {
-              console.log('1');
               //Displays the successful request and the error ID.
               // Opens a modal dialog to report the error to the user.
               this.ngZone.run(() => {
@@ -204,8 +203,6 @@ Handles an error and displays a modal dialog to the user to report the error.
             eventosUsuario
           ).subscribe({
             next: (response) => {
-              console.log('2');
-
               //Displays the successful request and the error ID.
               this.ngZone.run(() => {
                 this.dialog.open(AlertDialog, {
